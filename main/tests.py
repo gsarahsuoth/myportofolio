@@ -69,7 +69,7 @@ class MainTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "index.html")
-        self.assertNotContains(response, self.education.institution)
+        self.assertNotContains(response, '<section class="education"')
         self.assertContains(response, f'href="{reverse("main:show_education")}"')
 
     def test_education_model(self):
