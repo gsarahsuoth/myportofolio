@@ -1,5 +1,5 @@
 from django.forms import ModelForm, TextInput,Textarea,NumberInput
-from main.models import Education
+from main.models import Education, Experience
 
 
 class EducationForm(ModelForm):
