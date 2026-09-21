@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
-from main.forms import EducationForm
+from main.forms import EducationForm,ExperienceForm
 from main.models import Experience, Education
 
 
@@ -74,3 +74,37 @@ def get_education_json(request):
 
     educations_json = serializers.serialize("json", educations)
     return HttpResponse(educations_json, content_type="application/json")
+
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Experience baru berhasil ditambahkan!")
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Gavrila Sarah Kartika Suoth",
+        "form": form,
+    }
+    return render(request, "experience_form.html", context)
+
+def delete_education(request, project_id):
+    experience = get_object_or_404(Experience, pk=project_id)
+
+    if request.method == "POST":
+        experience.delete()
+        messages.success(request, "Experience berhasil dihapus!")
+        return redirect("main:show_experience")
+
+    return redirect("main:show_experience")
+
+def get_experience_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experience = Experience.objects.all()
+
+    if title_query:
+        experience = experience.filter(title__icontains=title_query)
+
+    experience_json = serializers.serialize("json", experience)
+    return HttpResponse(experience_json, content_type="application/json")
