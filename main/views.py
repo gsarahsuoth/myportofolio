@@ -19,6 +19,15 @@ def show_main(request):
 
 
 def show_experience(request):
+    json_response = get_experience_json(request)
+
+    experiences = serializers.deserialize(
+        "json",
+        json_response.content.decode("utf-8"),
+    )
+    experiences = [experiences.object for experiences in experiences]
+    title_query = request.GET.get("title", "").strip()
+
     context = {
         "name": "Gavrila Sarah Kartika Suoth",
         "experience_list": Experience.objects.all(),
@@ -55,8 +64,8 @@ def create_education(request):
     }
     return render(request, "education_form.html", context)
 
-def delete_education(request, project_id):
-    education = get_object_or_404(Education, pk=project_id)
+def delete_education(request, education_id):
+    education = get_object_or_404(Education, pk=education_id)
 
     if request.method == "POST":
         education.delete()
@@ -89,8 +98,8 @@ def create_experience(request):
     }
     return render(request, "experience_form.html", context)
 
-def delete_experience(request, project_id):
-    experience = get_object_or_404(Experience, pk=project_id)
+def delete_experience(request, experience_id):
+    experience = get_object_or_404(Experience, pk=experience_id)
 
     if request.method == "POST":
         experience.delete()
@@ -108,3 +117,20 @@ def get_experience_json(request):
 
     experience_json = serializers.serialize("json", experience)
     return HttpResponse(experience_json, content_type="application/json")
+
+def update_experience(request, id):
+    experience = get_object_or_404(Experience, pk=id)
+
+    form = ExperienceForm(request.POST or None, instance=experience)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("main:show_experience")
+
+    context = {
+        "name": "Gavrila Sarah Kartika Suoth",
+        "form": form,
+        "experience": experience,
+    }
+
+    return render(request, "experience_form.html", context)

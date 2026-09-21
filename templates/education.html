@@ -54,6 +54,9 @@
                                 {% endif %}
                             </span>
                             <div class="education-card-actions">
+                                {% if education.education_url %}
+                                        <a href="{{ education.education_url }}" class="button">See Education</a>
+                                    {% endif %}
                                 {% include "components/education_delete_modal.html" with education=education %}
                             </div>
                         </article>
