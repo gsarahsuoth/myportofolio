@@ -52,8 +52,10 @@ class ExperienceForm(ModelForm):
             "description",
             "category",
             "thumbnail",
-            "started_at",
-            "ended_at",
+            "start_month",
+            "start_year",
+            "end_month",
+            "end_year",
         ]
 
         labels = {
@@ -61,8 +63,10 @@ class ExperienceForm(ModelForm):
             "description": "Description",
             "category": "Category",
             "thumbnail": "Thumbnail",
-            "started_at": "Start Date",
-            "ended_at": "End Date",
+            "start_month": "Start Month",
+            "start_year": "Start Year",
+            "end_month": "End Month",
+            "end_year": "End Year",
 
         }
 
@@ -71,6 +75,12 @@ class ExperienceForm(ModelForm):
                 attrs={
                     "placeholder": "Title",
                     "maxlength": 255,
+                }
+            ),
+            "description": Textarea(
+                attrs={
+                    "placeholder": "Describe your experience",
+                    "rows": 5,
                 }
             ),
             "thumbnail": URLInput(
@@ -84,14 +94,50 @@ class ExperienceForm(ModelForm):
                     "class": "form-input",
                 }
             ),
-            "started_at": DateTimeInput(
+            "start_month": Select(
+                choices=[
+                    (1, "January"),
+                    (2, "February"),
+                    (3, "March"),
+                    (4, "April"),
+                    (5, "May"),
+                    (6, "June"),
+                    (7, "July"),
+                    (8, "August"),
+                    (9, "September"),
+                    (10, "October"),
+                    (11, "November"),
+                    (12, "December"),
+                ]
+            ),
+
+            "start_year": NumberInput(
                 attrs={
-                    "type": "datetime-local",
+                    "placeholder": "2026",
                 }
             ),
-            "ended_at": DateTimeInput(
+
+            "end_month": Select(
+                choices=[
+                    ("", "---------"),
+                    (1, "January"),
+                    (2, "February"),
+                    (3, "March"),
+                    (4, "April"),
+                    (5, "May"),
+                    (6, "June"),
+                    (7, "July"),
+                    (8, "August"),
+                    (9, "September"),
+                    (10, "October"),
+                    (11, "November"),
+                    (12, "December"),
+                ]
+            ),
+
+            "end_year": NumberInput(
                 attrs={
-                    "type": "datetime-local",
+                    "placeholder": "2027",
                 }
             ),
         }

@@ -25,11 +25,15 @@
                                     {{ experience.description }}
                                 </p>
 
-                                {% if experience.is_ongoing %}
-                                    <p class="experience-status">Ongoing</p>
-                                {% else %}
-                                    <p class="experience-status">Completed</p>
-                                {% endif %}
+                                <span class="experience-years">
+                                    {{ experience.start_month }}/{{ experience.start_year }}
+                                    -
+                                    {% if experience.end_year %}
+                                        {{ experience.end_month }}/{{ experience.end_year }}
+                                    {% else %}
+                                        Present
+                                    {% endif %}
+                                </span>
                             </article>
                         {% empty %}
                             <p class="empty-state">
