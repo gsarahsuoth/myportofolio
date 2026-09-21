@@ -89,7 +89,7 @@ def create_experience(request):
     }
     return render(request, "experience_form.html", context)
 
-def delete_education(request, project_id):
+def delete_experience(request, project_id):
     experience = get_object_or_404(Experience, pk=project_id)
 
     if request.method == "POST":
