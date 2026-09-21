@@ -54,10 +54,16 @@
                                 {% endif %}
                             </span>
                             <div class="education-card-actions">
-                                {% if education.education_url %}
+                                <div class="education-actions">
+                                    <a href="{% url 'main:update_education' education.id %}"
+                                        class="button">
+                                        Edit
+                                    </a>
+                                    {% if education.education_url %}
                                         <a href="{{ education.education_url }}" class="button">See Education</a>
                                     {% endif %}
-                                {% include "components/education_delete_modal.html" with education=education %}
+                                    {% include "components/education_delete_modal.html" with education=education %}
+                                </div>
                             </div>
                         </article>
 

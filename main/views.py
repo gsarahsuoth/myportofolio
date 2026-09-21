@@ -74,6 +74,23 @@ def delete_education(request, education_id):
 
     return redirect("main:show_education")
 
+def update_education(request, id):
+    education = get_object_or_404(Education, pk=id)
+
+    form = EducationForm(request.POST or None, instance=education)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("main:show_education")
+
+    context = {
+        "name": "Gavrila Sarah Kartika Suoth",
+        "form": form,
+        "education": education,
+    }
+
+    return render(request, "education_form.html", context)
+
 def get_education_json(request):
     institute_query = request.GET.get("institution", "").strip()
     educations = Education.objects.all()

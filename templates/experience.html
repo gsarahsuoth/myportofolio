@@ -58,7 +58,9 @@
                                             class="button">
                                             Edit
                                         </a>
-
+                                        {% if education.education_url %}
+                                            <a href="{{ education.education_url }}" class="button">See Education</a>
+                                        {% endif %}
                                         {% include "components/experience_delete_modal.html" with experience=experience %}
                                     </div>
                                 </div>
