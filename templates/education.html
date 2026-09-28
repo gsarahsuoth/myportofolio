@@ -56,7 +56,7 @@
                             </span>
                             <div class="education-card-actions">
                                 <div class="education-actions">
-                                    {% if user.is_superuser %}
+                                    {% if perms.main.change_education %}
                                         <a href="{% url 'main:update_education' education.id %}"
                                             class="button">
                                             Edit

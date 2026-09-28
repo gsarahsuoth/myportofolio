@@ -56,10 +56,12 @@
                                 </span>
                                 <div class="experience-card-actions">
                                     <div class="experience-actions">
-                                        <a href="{% url 'main:update_experience' experience.id %}"
-                                            class="button">
-                                            Edit
-                                        </a>
+                                        {% if perms.main.change_education %}
+                                            <a href="{% url 'main:update_experience' experience.id %}"
+                                                class="button">
+                                                Edit
+                                            </a>
+                                        {% endif %}
                                         {% if experience.experience_url %}
                                             <a href="{{ experience.experience_url }}" class="button">See Experience</a>
                                         {% endif %}

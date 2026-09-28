@@ -7,10 +7,9 @@ from django.core import serializers
 from django.http import HttpResponse
 from main.forms import EducationForm,ExperienceForm
 from main.models import Experience, Education
-from django.contrib.auth.decorators import login_required  
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied   
 import datetime
-
 
 def show_main(request):
     last_login = request.COOKIES.get('last_login', 'Belum ada sesi login / Cookie tidak ditemukan')
@@ -89,6 +88,7 @@ def delete_education(request, education_id):
 
     return redirect("main:show_education")
 
+@permission_required('main.change_education', raise_exception=True)
 def update_education(request, id):
     education = get_object_or_404(Education, pk=id)
 
@@ -155,6 +155,7 @@ def get_experience_json(request):
     experience_json = serializers.serialize("json", experience, use_natural_foreign_keys=True)
     return HttpResponse(experience_json, content_type="application/json")
 
+@permission_required('main.change_experience', raise_exception=True)
 def update_experience(request, id):
     experience = get_object_or_404(Experience, pk=id)
 
