@@ -204,7 +204,7 @@ def logout_user(request):
     return response
 
 @login_required(login_url="/login/")
-def toggle_star(request, education_id):
+def education_toggle_star(request, education_id):
     education = get_object_or_404(Education, pk=education_id)
 
     if request.method == "POST":

@@ -19,5 +19,5 @@ urlpatterns = [
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),
     path("logout/", logout_user, name="logout"),
-    path("education/<uuid:education_id>/star/",toggle_star,name="toggle_star",),
+    path("education/<uuid:education_id>/star/",education_toggle_star,name="education_toggle_star",),
 ]
