@@ -12,11 +12,13 @@
                     
                     <div class="experience-header">
                         <h1>Experience</h1>
+                        
                         <a href="{% url 'main:create_experience' %}"
                         class="button experience-add-button">
                             <span aria-hidden="true">+</span>
                             Add Experience
                         </a>
+                        
                     </div>
 
                     <form method="get"
@@ -52,16 +54,18 @@
                                         Present
                                     {% endif %}
                                 </span>
-                                <div class="education-card-actions">
+                                <div class="experience-card-actions">
                                     <div class="experience-actions">
                                         <a href="{% url 'main:update_experience' experience.id %}"
                                             class="button">
                                             Edit
                                         </a>
-                                        {% if education.education_url %}
-                                            <a href="{{ education.education_url }}" class="button">See Education</a>
+                                        {% if experience.experience_url %}
+                                            <a href="{{ experience.experience_url }}" class="button">See Experience</a>
                                         {% endif %}
+                                        
                                         {% include "components/experience_delete_modal.html" with experience=experience %}
+
                                     </div>
                                 </div>
                             </article>
