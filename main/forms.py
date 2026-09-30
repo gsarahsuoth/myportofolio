@@ -1,4 +1,6 @@
 from django.forms import ModelForm, TextInput,Textarea,NumberInput,URLInput,DateTimeInput,Select
+from django.core.exceptions import ValidationError
+from django.utils.html import strip_tags
 from main.models import Education, Experience
 
 
@@ -43,6 +45,33 @@ class EducationForm(ModelForm):
                 }
             ),
         }
+        def clean_institution(self):
+            institution = strip_tags(self.cleaned_data.get("institution", "")).strip()
+            if not institution:
+                raise ValidationError("Education institution can't be empty or contain only HTML tags.")
+            return institution
+
+        def clean_degree(self):
+            degree = strip_tags(self.cleaned_data.get("degree", "")).strip()
+            if not degree:
+                raise ValidationError("Degree can't be empty or contain only HTML tags.")
+            return degree
+
+        def clean_start_year(self):
+            start_year = self.cleaned_data.get("start_year")
+            if start_year is None:
+                raise ValidationError("Start year is required.")
+            return start_year
+
+        def clean_end_year(self):
+            start_year = self.cleaned_data.get("start_year")
+            end_year = self.cleaned_data.get("end_year")
+
+            # Validasi logika: end_year tidak boleh lebih kecil dari start_year
+            if start_year and end_year and end_year < start_year:
+                raise ValidationError("End year cannot be earlier than start year.")
+
+            return end_year
 
 class ExperienceForm(ModelForm):
     class Meta:

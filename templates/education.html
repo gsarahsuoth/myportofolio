@@ -84,6 +84,16 @@
             gridContainer.classList.toggle('hide', !showGrid);
         }
 
+        // Convert special HTML characters into entities so they display as text
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
         // Build am education card element
         function buildEducationCardElement(item) {
             const education = item.fields;
@@ -92,8 +102,9 @@
             const articleElement = document.createElement('article');
             articleElement.className = 'education-card';
 
+            const startYearText = String(education.start_year);
             const endYearText = education.end_year ? education.end_year : 'Present';
-            const yearsHtml = `<span class="education-years">${education.start_year} - ${endYearText}</span>`;
+            const yearsHtml = `<span class="education-years">${escapeHtml(startYearText)} - ${escapeHtml(endYearText)}</span>`;
 
             // A dummy UUID used as a placeholder to be replaced with the real ID from the JSON data
             const deleteUrl = "{% url 'main:delete_education' '00000000-0000-0000-0000-000000000000' %}"
@@ -111,13 +122,13 @@
             const isStarredClass = education.is_starred ? " is-starred" : "";
             const starText = education.is_starred ? "Unstar" : "Star";
             const starTitle = education.star_count > 0 
-                ? `Starred by ${education.starred_by_names}` 
+                ? `Starred by ${escapeHtml(education.starred_by_names)}` 
                 : "Be the first to star";
 
             // Card component
             const completeCardHtml = `
-                <h2>${education.institution}</h2>
-                <p class="education-degree">${education.degree}</p>
+                <h2>${escapeHtml(education.institution)}</h2>
+                <p class="education-degree">${escapeHtml(education.degree)}</p>
                 ${yearsHtml}
                 
                 <div class="education-card-actions">
