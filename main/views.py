@@ -9,6 +9,8 @@ from main.forms import EducationForm,ExperienceForm
 from main.models import Experience, Education
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.exceptions import PermissionDenied   
+from django.views.decorators.http import require_POST
+
 import datetime
 
 def show_main(request):
@@ -116,11 +118,10 @@ def get_education_json(request):
         data.append({
             "pk": str(education.id),
             "fields": {
-                "title": education.title,
-                "description": education.description,
-                "tech_stack": education.tech_stack,
-                "education_url": education.education_url,
-                "education_image_url": education.education_image_url,
+                "institution": education.institution,
+                "degree": education.degree,
+                "start_year": education.start_year,
+                "end_year": education.end_year,
                 "star_count": starred_users.count(),
                 "is_starred": is_starred,
                 "starred_by_names": starred_by_names,
@@ -244,3 +245,21 @@ def experience_toggle_star(request, experience_id):
             experience.starred_by.add(request.user)
 
     return redirect("main:show_experience")
+
+@require_POST
+def create_education_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add educations."},
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+    if form.is_valid():
+        education = form.save()
+        return JsonResponse(
+            {"message": "Education added successfully.", "pk": str(education.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)

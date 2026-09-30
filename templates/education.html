@@ -17,7 +17,7 @@
                                 class="button education-add-button"
                                 popovertarget="add-education-modal">
                             <span aria-hidden="true">+</span>
-                            Add Project
+                            Add Education
                         </button>
                     {% endif %}
                 </div>
@@ -61,7 +61,7 @@
 
     <script>
         // Configuration
-        const BASE_EDUCATION_ENDPOINT = "{% url 'main:get_educations_json' %}";
+        const BASE_EDUCATION_ENDPOINT = "{% url 'main:get_education_json' %}";
         const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
         let educationsAbortController;
 
@@ -92,18 +92,13 @@
             const articleElement = document.createElement('article');
             articleElement.className = 'education-card';
 
-            const imageHtml = education.education_image_url 
-                ? `<img src="${education.education_image_url}" alt="Image of ${education.title}" class="education-image">`
-                : '';
-
-            const urlHtml = education.education_url 
-                ? `<a href="${education.education_url}" class="button">View Education</a>`
-                : '';
+            const endYearText = education.end_year ? education.end_year : 'Present';
+            const yearsHtml = `<span class="education-years">${education.start_year} - ${endYearText}</span>`;
 
             // A dummy UUID used as a placeholder to be replaced with the real ID from the JSON data
             const deleteUrl = "{% url 'main:delete_education' '00000000-0000-0000-0000-000000000000' %}"
                 .replace('00000000-0000-0000-0000-000000000000', educationID);
-            const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
+            const starUrl = "{% url 'main:education_toggle_star' '00000000-0000-0000-0000-000000000000' %}"
                 .replace('00000000-0000-0000-0000-000000000000', educationID);
 
             const deleteHtml = IS_SUPERUSER 
@@ -121,14 +116,12 @@
 
             // Card component
             const completeCardHtml = `
-                ${imageHtml}
-                <h2>${education.title}</h2>
-                <span class="education-category">${education.tech_stack}</span>
-                <p class="education-description">${education.description}</p>
+                <h2>${education.institution}</h2>
+                <p class="education-degree">${education.degree}</p>
+                ${yearsHtml}
+                
                 <div class="education-card-actions">
                     <div class="education-actions">
-                        ${urlHtml}
-                        
                         <form method="post" action="${starUrl}" class="star-form">
                             {% csrf_token %}
                             <button type="submit" 
@@ -160,7 +153,7 @@
             try {
                 displayPageSection({ showLoading: true });
                 
-                const url = searchQuery ? `${BASE_EDUCATIONS_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : BASE_EDUCATIONS_ENDPOINT;
+                const url = searchQuery ? `${BASE_EDUCATION_ENDPOINT}?institution=${encodeURIComponent(searchQuery)}` : BASE_EDUCATION_ENDPOINT;
                 
                 const response = await fetch(url, {
                     headers: { 'Accept': 'application/json' },
@@ -187,6 +180,63 @@
             }
         }
 
+        const CREATE_EDUCATION_ENDPOINT = "{% url 'main:create_education_ajax' %}";
+        const educationForm = document.getElementById('education-form');
+
+        // Read a cookie value, used to get the CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Send the form data to the server
+        async function addEducation(event) {
+            event.preventDefault();
+
+            const submitButton = educationForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch(CREATE_EDUCATION_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: new FormData(educationForm),
+                });
+                const result = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    educationForm.reset();
+                    closeEducationModal();
+                    showToast('Success', 'New education added successfully!', 'success');
+                    fetchEducations(searchInput.value.trim());
+                } else {
+                    const errorMessages = result.errors
+                        ? Object.values(result.errors).flat().map(error => error.message)
+                        : [result.message || `Something went wrong (status ${response.status}).`];
+                    showToast('Failed to add education', errorMessages.join(' '), 'error');
+                }
+            } catch (error) {
+                console.error('Error adding education:', error);
+                showToast('Failed to add education', 'Could not reach the server. Please try again.', 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+
+        if (educationForm) {
+            educationForm.addEventListener('submit', addEducation);
+        }
+
         function searchEducations() {
             fetchEducations(searchInput.value.trim());
         }
@@ -204,5 +254,6 @@
             clearTimeout(searchDebounceTimer);
             searchEducations();
         });
+        fetchEducations();
     </script>
 {% endblock content %}

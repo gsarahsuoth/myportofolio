@@ -21,4 +21,5 @@ urlpatterns = [
     path("logout/", logout_user, name="logout"),
     path("education/<uuid:education_id>/star/",education_toggle_star,name="education_toggle_star",),
     path("experience/<uuid:experience_id>/star/",experience_toggle_star,name="experience_toggle_star",),
+    path("education/add-ajax/", create_education_ajax, name="create_education_ajax"),
 ]
