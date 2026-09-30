@@ -46,7 +46,8 @@ def show_education(request):
 
     context = {
         "name": "Gavrila Sarah Kartika Suoth",
-        "education_list": Education.objects.all(),
+        "institute_query": institute_query,
+        "form": EducationForm(),
     }
     return render(request, "education.html", context)
 
