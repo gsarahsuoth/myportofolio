@@ -170,3 +170,14 @@ class ExperienceForm(ModelForm):
                 }
             ),
         }
+        def clean_title(self):
+            title = strip_tags(self.cleaned_data["title"]).strip()
+            if not title:
+                raise ValidationError("Experience name can't contain only HTML tags.")
+            return title
+
+        def clean_description(self):
+            return strip_tags(self.cleaned_data["description"]).strip()
+
+        def clean_thumbnail(self):
+            return strip_tags(self.cleaned_data["thumbnail"]).strip()
