@@ -49,7 +49,7 @@
                 </div>
 
                 <!-- Project Grid -->
-                <div id="grid" class="experience-grid project-grid hide"></div>
+                <div id="grid" class="experience-grid experience-grid hide"></div>
 
                     <div class="experience-grid">
                         {% for experience in experience_list %}
@@ -113,8 +113,10 @@
     const errorState = document.getElementById('error');
     const emptyState = document.getElementById('empty');
     const gridContainer = document.getElementById('grid');
-    const searchForm = document.getElementById('project-search-form');
+    const searchForm = document.getElementById('experience-search-form');
     const searchInput = document.getElementById('search-input');
+    const SEARCH_DEBOUNCE_DELAY = 300;
+    let searchDebounceTimer;
 
     // Show/hide page sections
     function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
@@ -124,7 +126,7 @@
         gridContainer.classList.toggle('hide', !showGrid);
     }
 
-    // Build a project card element
+    // Build a experience card element
     function buildExperienceCardElement(item) {
         const experience = item.fields;
         const experienceId = item.pk;
@@ -142,9 +144,9 @@
 
         // A dummy UUID used as a placeholder to be replaced with the real ID from the JSON data
         const deleteUrl = "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
-            .replace('00000000-0000-0000-0000-000000000000', projectId);
+            .replace('00000000-0000-0000-0000-000000000000', experienceId);
         const starUrl = "{% url 'main:experience_toggle_star' '00000000-0000-0000-0000-000000000000' %}"
-            .replace('00000000-0000-0000-0000-000000000000', projectId);
+            .replace('00000000-0000-0000-0000-000000000000', experienceId);
 
         const deleteHtml = IS_SUPERUSER 
             ? `<form method="post" action="${deleteUrl}" style="display:inline;">
@@ -189,7 +191,7 @@
         return articleElement;
     }
 
-    // Fetch project data
+    // Fetch experience data
     async function fetchExperiences(searchQuery = "") {
         if (experiencesAbortController) experiencesAbortController.abort();
         experiencesAbortController = new AbortController();
@@ -225,12 +227,25 @@
     }
 
     // Search form event handler
-    searchForm.addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent the page from reloading
-        fetchProjects(searchInput.value.trim()); // Run the search via AJAX
+    function searchExperiences() {
+        fetchExperiences(searchInput.value.trim());
+    }
+
+    searchInput.addEventListener("input", function() {
+        clearTimeout(searchDebounceTimer);
+
+        searchDebounceTimer = setTimeout(function() {
+            searchExperiences();
+        }, SEARCH_DEBOUNCE_DELAY);
+    });
+
+    searchForm.addEventListener("submit", function(event) {
+        event.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        searchExperiences();
     });
 
     // Start the application
-    fetchProjects(searchInput.value.trim());
+    fetchExperience(searchInput.value.trim());
     </script>
 {% endblock content %}
