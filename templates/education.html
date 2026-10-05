@@ -49,8 +49,8 @@
                 </div>
 
                 <!-- Education Grid -->
-                <div id="grid" class="experience-grid education-grid hide"></div>
-                </div>
+                <div id="grid" class="education-grid education-grid hide"></div>
+                
             </div>
         </section>
     </main>
@@ -63,6 +63,7 @@
         // Configuration
         const BASE_EDUCATION_ENDPOINT = "{% url 'main:get_education_json' %}";
         const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+        const CAN_EDIT_EDUCATION = "{{ perms.main.change_education|yesno:'true,false' }}" === "true";
         let educationsAbortController;
 
         // DOM elements
@@ -119,6 +120,13 @@
                 </form>`
                 : '';
 
+            const editUrl = "{% url 'main:update_education' '00000000-0000-0000-0000-000000000000' %}"
+                .replace('00000000-0000-0000-0000-000000000000', educationID);
+
+            const editHtml = CAN_EDIT_EDUCATION
+                ? `<a href="${editUrl}" class="button">Edit</a>`
+                : '';
+
             const isStarredClass = education.is_starred ? " is-starred" : "";
             const starText = education.is_starred ? "Unstar" : "Star";
             const starTitle = education.star_count > 0 
@@ -133,6 +141,7 @@
                 
                 <div class="education-card-actions">
                     <div class="education-actions">
+                        ${editHtml}
                         <form method="post" action="${starUrl}" class="star-form">
                             {% csrf_token %}
                             <button type="submit" 

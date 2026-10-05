@@ -170,7 +170,6 @@ def get_experience_json(request):
                 "title": experience.title,
                 "description": experience.description,
                 "category": experience.category,
-                "experience_url": experience.experience_url,
                 "start-month": experience.start_month,
                 "start-year": experience.start_year,
                 "end-month": experience.end_month,
@@ -274,6 +273,23 @@ def create_education_ajax(request):
         education = form.save()
         return JsonResponse(
             {"message": "Education added successfully.", "pk": str(education.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Only the portfolio owner can add experiences."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        project = form.save()
+        return JsonResponse(
+            {"message": "Experience added successfully.", "pk": str(project.id)},
             status=201,
         )
 

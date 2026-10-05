@@ -5,34 +5,34 @@
 {% block content %}
 
     <!-- MAIN CONTENT -->
-        <main>
-            <section class="experience-section" id="experience">
-                <div class="container">
-                    <p class="section-kicker">My journey so far</p>
+    <main>
+        <section class="experience-section" id="experience">
+            <div class="container">
+                <p class="section-kicker">My journey so far</p>
                     
-                    <div class="experience-header">
-                        <h1>Experience</h1>
-                        {% if user.is_superuser %}
-                            <button type="button"
-                                    class="button project-add-button"
-                                    popovertarget="add-project-modal">
-                                <span aria-hidden="true">+</span>
-                                Add Project
-                            </button>
-                        {% endif %}
-                    </div>
+                <div class="experience-header">
+                    <h1>Experience</h1>
+                    {% if user.is_superuser %}
+                        <button type="button"
+                                class="button experience-add-button"
+                                popovertarget="add-experience-modal">
+                            <span aria-hidden="true">+</span>
+                            Add Experience
+                        </button>
+                    {% endif %}
+                </div>
 
-                    <form id="experience-search-form" class="experience-search">
-                        <input type="search"
-                            id="search-input"
-                            name="title"
-                            value="{{ experience_query }}"
-                            placeholder="Search by title name"
-                            class="experience-search__input"
-                            aria-label="Search by title name">
+                <form id="experience-search-form" class="experience-search">
+                    <input type="search"
+                        id="search-input"
+                        name="title"
+                        value="{{ experience_query }}"
+                        placeholder="Search by title name"
+                        class="experience-search__input"
+                        aria-label="Search by title name">
 
-                        <button type="submit" class="button">Search</button>
-                    </form>
+                    <button type="submit" class="button">Search</button>
+                </form>
 
                     <!-- Loading State -->
                 <div id="loading" class="empty-state hide">
@@ -49,64 +49,22 @@
                     <p>No experience have been added or found yet.</p>
                 </div>
 
-                <!-- Project Grid -->
+                <!-- Experience Grid -->
                 <div id="grid" class="experience-grid experience-grid hide"></div>
 
-                    <div class="experience-grid">
-                        {% for experience in experience_list %}
-                            <article class="experience-card">
-                                <span class="experience-category">
-                                    {{ experience.get_category_display }}
-                                </span>
-                                <h2>{{ experience.title }}</h2>
-                                <p class="experience-description">{{ experience.description }}</p>
-                                <span class="experience-years">
-                                    {{ experience.start_month }}/{{ experience.start_year }}
-                                    -
-                                    {% if experience.end_year %}
-                                        {{ experience.end_month }}/{{ experience.end_year }}
-                                    {% else %}
-                                        Present
-                                    {% endif %}
-                                </span>
-                                <div class="experience-card-actions">
-                                    <div class="experience-actions">
-                                        {% if perms.main.change_education %}
-                                            <a href="{% url 'main:update_experience' experience.id %}"
-                                                class="button">
-                                                Edit
-                                            </a>
-                                        {% endif %}
-                                        {% if experience.experience_url %}
-                                            <a href="{{ experience.experience_url }}" class="button">See Experience</a>
-                                        {% endif %}
-                                        {% include "components/experience_star.html" with experience=experience %}
-                                        {% if user.is_superuser %}
-                                            {% include "components/experience_delete_modal.html" with experience=experience %}
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </article>
-                        {% empty %}
-                            {% if experience_query %}
-                                <p class="empty-state">
-                                    No experience record found with that institution name.
-                                </p>
-                            {% else %}
-                                <p class="empty-state">
-                                    No experience has been added yet.
-                                </p>
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </section>
-        </main>
+            </div>
+        </section>
+    </main>
+
+    {% if user.is_superuser %}
+        {% include "components/experience_form_modal.html" %}
+    {% endif %}
 
     <script>
     // Configuration
     const BASE_EXPERIENCE_ENDPOINT = "{% url 'main:get_experience_json' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const CAN_EDIT_EXPERIENCE = "{{ perms.main.change_experience|yesno:'true,false' }}" === "true";
     let experiencesAbortController;
 
     // DOM elements
@@ -156,6 +114,13 @@
             </form>`
             : '';
 
+        const editUrl = "{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
+            .replace('00000000-0000-0000-0000-000000000000', experienceId);
+
+        const editHtml = CAN_EDIT_EXPERIENCE
+            ? `<a href="${editUrl}" class="button">Edit</a>`
+            : '';
+
         const isStarredClass = experience.is_starred ? " is-starred" : "";
         const starText = experience.is_starred ? "Unstar" : "Star";
         const starTitle = experience.star_count > 0 
@@ -170,8 +135,7 @@
             <p class="experience-description">${experience.description}</p>
             <div class="experience-card-actions">
                 <div class="experience-actions">
-                    ${urlHtml}
-                    
+                    ${editHtml}
                     <form method="post" action="${starUrl}" class="star-form">
                         {% csrf_token %}
                         <button type="submit" 
@@ -192,6 +156,10 @@
         return articleElement;
     }
 
+    function closeExperienceModal() {
+        document.getElementById("add-experience-modal").hidePopover();
+    }
+
     // Fetch experience data
     async function fetchExperiences(searchQuery = "") {
         if (experiencesAbortController) experiencesAbortController.abort();
@@ -200,7 +168,7 @@
         try {
             displayPageSection({ showLoading: true });
             
-            const url = searchQuery ? `${BASE_EXPERIENCES_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : BASE_EXPERIENCES_ENDPOINT;
+            const url = searchQuery ? `${BASE_EXPERIENCE_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : BASE_EXPERIENCE_ENDPOINT;
             
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
@@ -227,6 +195,63 @@
         }
     }
 
+    const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
+    const experienceForm = document.getElementById('experience-form');
+
+    // Read a cookie value, used to get the CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Send the form data to the server
+    async function addExperience(event) {
+        event.preventDefault();
+
+        const submitButton = experienceForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: new FormData(experienceForm),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                experienceForm.reset();
+                closeExperienceModal();
+                showToast('Success', 'New experience added successfully!', 'success');
+                fetchExperiences(searchInput.value.trim());
+            } else {
+                const errorMessages = result.errors
+                    ? Object.values(result.errors).flat().map(error => error.message)
+                    : [result.message || `Something went wrong (status ${response.status}).`];
+                showToast('Failed to add experience', errorMessages.join(' '), 'error');
+            }
+        } catch (error) {
+            console.error('Error adding experience:', error);
+            showToast('Failed to add experience', 'Could not reach the server. Please try again.', 'error');
+        } finally {
+            submitButton.disabled = false;
+        }
+    }
+
+    if (experienceForm) {
+        experienceForm.addEventListener('submit', addExperience);
+    }
+
     // Search form event handler
     function searchExperiences() {
         fetchExperiences(searchInput.value.trim());
@@ -247,6 +272,6 @@
     });
 
     // Start the application
-    fetchExperience(searchInput.value.trim());
+    fetchExperiences(searchInput.value.trim());
     </script>
 {% endblock content %}
