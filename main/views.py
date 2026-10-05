@@ -33,6 +33,7 @@ def show_experience(request):
     context = {
         "name": "Gavrila Sarah Kartika Suoth",
         "title_query": title_query,
+        "form": ExperienceForm(),
     }
     return render(request, "experience.html", context)
 
