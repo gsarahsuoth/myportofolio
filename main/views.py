@@ -28,18 +28,11 @@ def show_main(request):
 
 
 def show_experience(request):
-    json_response = get_experience_json(request)
-
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [experiences.object for experiences in experiences]
     title_query = request.GET.get("title", "").strip()
 
     context = {
         "name": "Gavrila Sarah Kartika Suoth",
-        "experience_list": Experience.objects.all(),
+        "title_query": title_query,
     }
     return render(request, "experience.html", context)
 
@@ -165,8 +158,30 @@ def get_experience_json(request):
     if title_query:
         experience = experience.filter(title__icontains=title_query)
 
-    experience_json = serializers.serialize("json", experience, use_natural_foreign_keys=True)
-    return HttpResponse(experience_json, content_type="application/json")
+    data = []
+    for experience in experience:
+        starred_users = experience.starred_by.all()
+        is_starred = request.user in starred_users if request.user.is_authenticated else False
+        starred_by_names = ", ".join([u.username for u in starred_users])
+
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.category,
+                "experience_url": experience.experience_url,
+                "start-month": experience.start_month,
+                "start-year": experience.start_year,
+                "end-month": experience.end_month,
+                "end-year": experience.end_year,
+                "star_count": starred_users.count(),
+                "is_starred": is_starred,
+                "starred_by_names": starred_by_names,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
 
 @permission_required('main.change_experience', raise_exception=True)
 def update_experience(request, id):
