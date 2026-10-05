@@ -31,3 +31,16 @@ Because of this limitation, I would like to integrate the website with a databas
 2. JSON is preferred in modern web applications because it is lightweight, easy to read, and easier for applications to process compared to XML. Its structure is also similar to common data structures used in programming languages, such as objects in JavaScript and dictionaries in Python, which makes it convenient for transferring data between the frontend and backend. XML can also represent structured data, but it usually requires more tags and is more verbose, so JSON is often more practical for APIs and web applications.
 
 3. When a view function returns portfolio data in JSON format, it first retrieves the data from the Django database through a model query. Since Django model objects are Python objects and cannot be directly converted into JSON, we need to perform serialization, which converts the model objects into a JSON-compatible structure containing the relevant fields. The serialized data can then be returned by the view as JSON, allowing the frontend or another application to easily receive and process our portfolio data.
+
+### Assignment 4
+AI-disclosure: https://share.gemini.google/ZvoCkqLiz67t
+I was initially confused by the instruction “Apply the Editor role through Django Group or Permission (set via Django Admin).” To clarify this, I asked an AI about the concept of an editor role and how it works in Django. Afterward, I also discussed with my friend how to add an editor and configure its permissions properly.
+
+### Assignment 5
+1. Debouncing is a technique that delays a function until the user stops typing for a short period of time. It is important for AJAX search because it prevents unnecessary requests from being sent for every keystroke, improving performance.
+
+2. await makes the code wait for the fetch() request to finish before continuing, so we can work with the response properly. Without await, fetch() returns a Promise immediately, and we might try to process the response before the data is available.
+
+3. Cross-Site Scripting (XSS) is an attack where malicious JavaScript is injected into a webpage and executed in a user's browser. AJAX/JavaScript can be more vulnerable because data is often inserted directly into the DOM using methods like innerHTML, while Django templates automatically escape variables by default.
+
+AI-disclosure: https://share.gemini.google/JDqlySiFHRrC 
