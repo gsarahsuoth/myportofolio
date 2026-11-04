@@ -54,3 +54,28 @@ class ExperienceSerializer(serializers.ModelSerializer):
 
     def get_starred_by_names(self, obj):
         return ", ".join(user.username for user in obj.starred_by.all())
+    
+from main.models import Experience
+from main.serializers import ExperienceSerializer
+
+experiences = Experience.objects.all()
+print(ExperienceSerializer(experiences, many=True).data)
+
+candidate = ExperienceSerializer(
+    data={
+        "title": "Software Engineer Intern",
+        "description": "Building web apps using Django and React",
+        "category": "internship",
+        "thumbnail": "https://example.com/image.png",
+        "start_month": 6,
+        "start_year": 2025,
+        "end_month": 12,
+        "end_year": 2025,
+    }
+)
+print(candidate.is_valid())
+print(candidate.validated_data)
+
+invalid = ExperienceSerializer(data={"title": "", "category": "invalid-choice"})
+print(invalid.is_valid())
+print(invalid.errors)
