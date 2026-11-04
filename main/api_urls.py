@@ -4,4 +4,5 @@ from main import api_views
 app_name = "api"
 urlpatterns = [
     path("experiences/", api_views.experience_list, name="experiences-list"),
+    path("experiences/<uuid:experience_id>/", api_views.experience_detail, name="experience-detail"),
 ]
