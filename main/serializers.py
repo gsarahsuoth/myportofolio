@@ -1,20 +1,30 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
 
-from main.models import Project
+from main.models import Experience
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ExperienceSerializer(serializers.ModelSerializer):
     star_count = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
     starred_by_names = serializers.SerializerMethodField()
 
     class Meta:
-        model = Project
+        model = Experience
         fields = [
-            "id", "title", "description", "tech_stack",
-            "project_url", "project_image_url",
-            "star_count", "is_starred", "starred_by_names",
+            "id",
+            "title",
+            "description",
+            "category",
+            "thumbnail",
+            "start_month",
+            "start_year",
+            "end_month",
+            "end_year",
+            "is_ongoing",
+            "star_count",
+            "is_starred",
+            "starred_by_names",
         ]
         read_only_fields = ["id"]
 
@@ -27,8 +37,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     def validate_description(self, value):
         return strip_tags(value)
 
-    def validate_tech_stack(self, value):
-        return strip_tags(value)
+    def validate_category(self, value):
+        valid_choices = [choice[0] for choice in Experience.EXPERIENCE_CHOICES]
+        if value not in valid_choices:
+            raise serializers.ValidationError("Invalid category choice.")
+        return value
 
     def get_star_count(self, obj):
         return obj.starred_by.count()
