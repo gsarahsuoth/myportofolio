@@ -14,8 +14,8 @@ class MainTest(TestCase):
             category="part-time",
             start_month=1,
             start_year=2025,
-            end_month=12,
-            end_year=2025, 
+            end_month=None,
+            end_year=None, 
         )
         self.education = Education.objects.create(
             institution="Universitas Indonesia",
