@@ -50,3 +50,7 @@ class Education(models.Model):
 
     def __str__(self):
         return f"{self.degree} at {self.institution}"
+    
+    @property
+    def is_ongoing(self):
+        return self.end_year is None

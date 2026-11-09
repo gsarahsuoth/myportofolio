@@ -1,8 +1,7 @@
 from django.utils.html import strip_tags
 from rest_framework import serializers
 
-from main.models import Experience
-
+from main.models import Experience, Education
 
 class ExperienceSerializer(serializers.ModelSerializer):
     star_count = serializers.SerializerMethodField()
@@ -42,6 +41,59 @@ class ExperienceSerializer(serializers.ModelSerializer):
         if value not in valid_choices:
             raise serializers.ValidationError("Invalid category choice.")
         return value
+
+    def get_star_count(self, obj):
+        return obj.starred_by.count()
+
+    def get_is_starred(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return request.user in obj.starred_by.all()
+
+    def get_starred_by_names(self, obj):
+        return ", ".join(user.username for user in obj.starred_by.all())
+    
+class EducationSerializer(serializers.ModelSerializer):
+    star_count = serializers.SerializerMethodField()
+    is_starred = serializers.SerializerMethodField()
+    starred_by_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Education
+        fields = [
+            "id",
+            "institution",
+            "degree",
+            "start_year",
+            "end_year",
+            "is_ongoing",
+            "star_count",
+            "is_starred",
+            "starred_by_names",
+        ]
+        read_only_fields = ["id"]
+
+    def _clean_required(self, value, label):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError(f"{label} cannot be empty.")
+        return value
+
+    def validate_institution(self, value):
+        return self._clean_required(value, "Institution")
+
+    def validate_degree(self, value):
+        return self._clean_required(value, "Degree")
+
+    def validate(self, attrs):
+        start = attrs.get("start_year", getattr(self.instance, "start_year", None))
+        end = attrs.get("end_year", getattr(self.instance, "end_year", None))
+        if start is not None and end is not None and end < start:
+            raise serializers.ValidationError(
+                {"end_year": "End year cannot be earlier than start year."}
+            )
+        return attrs
 
     def get_star_count(self, obj):
         return obj.starred_by.count()
