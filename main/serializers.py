@@ -53,7 +53,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
 
     def get_starred_by_names(self, obj):
         return ", ".join(user.username for user in obj.starred_by.all())
-    
+
 class EducationSerializer(serializers.ModelSerializer):
     star_count = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
@@ -71,38 +71,30 @@ class EducationSerializer(serializers.ModelSerializer):
             "star_count",
             "is_starred",
             "starred_by_names",
+            "starred_by",
         ]
-        read_only_fields = ["id"]
-
-    def _clean_required(self, value, label):
-        value = strip_tags(value).strip()
-        if not value:
-            raise serializers.ValidationError(f"{label} cannot be empty.")
-        return value
-
-    def validate_institution(self, value):
-        return self._clean_required(value, "Institution")
-
-    def validate_degree(self, value):
-        return self._clean_required(value, "Degree")
-
-    def validate(self, attrs):
-        start = attrs.get("start_year", getattr(self.instance, "start_year", None))
-        end = attrs.get("end_year", getattr(self.instance, "end_year", None))
-        if start is not None and end is not None and end < start:
-            raise serializers.ValidationError(
-                {"end_year": "End year cannot be earlier than start year."}
-            )
-        return attrs
+        read_only_fields = ["id", "star_count", "is_starred", "starred_by_names", "starred_by"]
 
     def get_star_count(self, obj):
         return obj.starred_by.count()
 
     def get_is_starred(self, obj):
         request = self.context.get("request")
-        if request is None or not request.user.is_authenticated:
-            return False
-        return request.user in obj.starred_by.all()
+        if request and request.user.is_authenticated:
+            return obj.starred_by.filter(pk=request.user.pk).exists()
+        return False
 
     def get_starred_by_names(self, obj):
-        return ", ".join(user.username for user in obj.starred_by.all())
+        return ", ".join([user.username for user in obj.starred_by.all()])
+
+    def validate_institution(self, value):
+        cleaned = strip_tags(value).strip()
+        if not cleaned:
+            raise serializers.ValidationError("Institution cannot be empty.")
+        return cleaned
+
+    def validate_degree(self, value):
+        cleaned = strip_tags(value).strip()
+        if not cleaned:
+            raise serializers.ValidationError("Degree cannot be empty.")
+        return cleaned

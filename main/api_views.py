@@ -73,56 +73,56 @@ def experience_star(request, experience_id):
     serializer = ExperienceSerializer(experience, context={"request": request})
     return Response(serializer.data)
 
-@api_view(["GET", "HEAD", "POST"])
+@api_view(["GET", "POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
-def education_list(request):
-    if request.method in ("GET", "HEAD"):
-        educations = Education.objects.prefetch_related("starred_by").order_by(
-            "-start_year", "institution", "id"
-        )
-        institution = request.query_params.get("institution", "").strip()
-        if institution:
-            educations = educations.filter(institution__icontains=institution)
-        serializer = EducationSerializer(
-            educations, many=True, context={"request": request},
-        )
+def education_list_api(request):
+    if request.method == "GET":
+        title_query = request.GET.get("title", "") # atau institution/degree query
+        educations = Education.objects.all()
+        if title_query:
+            educations = educations.filter(degree__icontains=title_query) | educations.filter(institution__icontains=title_query)
+        serializer = EducationSerializer(educations, many=True, context={"request": request})
+        return Response(serializer.data)
+    
+    elif request.method == "POST":
+        serializer = EducationSerializer(data=request.data, context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
+def education_detail_api(request, pk):
+    education = get_object_or_404(Education, pk=pk)
+
+    if request.method == "GET":
+        serializer = EducationSerializer(education, context={"request": request})
         return Response(serializer.data)
 
-    serializer = EducationSerializer(data=request.data, context={"request": request})
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    elif request.method in ["PUT", "PATCH"]:
+        partial = request.method == "PATCH"
+        serializer = EducationSerializer(education, data=request.data, partial=partial, context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
-def education_detail(request, education_id):
-    education = get_object_or_404(
-        Education.objects.prefetch_related("starred_by"), pk=education_id,
-    )
-    if request.method in ("GET", "HEAD"):
-        return Response(EducationSerializer(education, context={"request": request}).data)
-    if request.method == "DELETE":
+    elif request.method == "DELETE":
         education.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    serializer = EducationSerializer(
-        education, data=request.data, partial=request.method == "PATCH",
-        context={"request": request},
-    )
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(serializer.data)
-
 
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
-def education_star(request, education_id):
-    education = get_object_or_404(Education, pk=education_id)
-    if education.starred_by.filter(pk=request.user.pk).exists():
-        education.starred_by.remove(request.user)
+def education_star_api(request, pk):
+    education = get_object_or_404(Education, pk=pk)
+    user = request.user
+    if education.starred_by.filter(pk=user.pk).exists():
+        education.starred_by.remove(user)
     else:
-        education.starred_by.add(request.user)
-    return Response(EducationSerializer(education, context={"request": request}).data)
+        education.starred_by.add(user)
+    serializer = EducationSerializer(education, context={"request": request})
+    return Response(serializer.data)
