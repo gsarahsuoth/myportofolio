@@ -12,6 +12,10 @@ class MainTest(TestCase):
             title="PBP Teaching Assistant",
             description="Help students understand web development.",
             category="part-time",
+            start_month=1,
+            start_year=2025,
+            end_month=None,
+            end_year=None, 
         )
         self.education = Education.objects.create(
             institution="Universitas Indonesia",

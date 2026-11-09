@@ -1,0 +1,100 @@
+from django.utils.html import strip_tags
+from rest_framework import serializers
+
+from main.models import Experience, Education
+
+class ExperienceSerializer(serializers.ModelSerializer):
+    star_count = serializers.SerializerMethodField()
+    is_starred = serializers.SerializerMethodField()
+    starred_by_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Experience
+        fields = [
+            "id",
+            "title",
+            "description",
+            "category",
+            "thumbnail",
+            "start_month",
+            "start_year",
+            "end_month",
+            "end_year",
+            "is_ongoing",
+            "star_count",
+            "is_starred",
+            "starred_by_names",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_title(self, value):
+        value = strip_tags(value).strip()
+        if not value:
+            raise serializers.ValidationError("Title cannot be empty.")
+        return value
+
+    def validate_description(self, value):
+        return strip_tags(value)
+
+    def validate_category(self, value):
+        valid_choices = [choice[0] for choice in Experience.EXPERIENCE_CHOICES]
+        if value not in valid_choices:
+            raise serializers.ValidationError("Invalid category choice.")
+        return value
+
+    def get_star_count(self, obj):
+        return obj.starred_by.count()
+
+    def get_is_starred(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user.is_authenticated:
+            return False
+        return request.user in obj.starred_by.all()
+
+    def get_starred_by_names(self, obj):
+        return ", ".join(user.username for user in obj.starred_by.all())
+
+class EducationSerializer(serializers.ModelSerializer):
+    star_count = serializers.SerializerMethodField()
+    is_starred = serializers.SerializerMethodField()
+    starred_by_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Education
+        fields = [
+            "id",
+            "institution",
+            "degree",
+            "start_year",
+            "end_year",
+            "is_ongoing",
+            "star_count",
+            "is_starred",
+            "starred_by_names",
+            "starred_by",
+        ]
+        read_only_fields = ["id", "star_count", "is_starred", "starred_by_names", "starred_by"]
+
+    def get_star_count(self, obj):
+        return obj.starred_by.count()
+
+    def get_is_starred(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return obj.starred_by.filter(pk=request.user.pk).exists()
+        return False
+
+    def get_starred_by_names(self, obj):
+        return ", ".join([user.username for user in obj.starred_by.all()])
+
+    def validate_institution(self, value):
+        cleaned = strip_tags(value).strip()
+        if not cleaned:
+            raise serializers.ValidationError("Institution cannot be empty.")
+        return cleaned
+
+    def validate_degree(self, value):
+        cleaned = strip_tags(value).strip()
+        if not cleaned:
+            raise serializers.ValidationError("Degree cannot be empty.")
+        return cleaned
